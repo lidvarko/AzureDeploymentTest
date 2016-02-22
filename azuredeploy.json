@@ -8,8 +8,7 @@
             "allowedValues": [ "West US" ]
         },
         "clusterName": {
-            "type": "string",
-            "defaultValue": "GEN-UNIQUE-[10]"
+            "type": "string"
         },
         "clusterUserName": {
             "type": "string",
