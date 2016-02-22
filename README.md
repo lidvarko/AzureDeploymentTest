@@ -1,10 +1,9 @@
 # Azure HDInsight Deployment test
 This is just for testing GITHub (do not use)
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Flidvarko%2FAzureDeploymentTest%2Fmaster%2FAzureHDInsightDeployment.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Flidvarko%2FAzureDeploymentTest%2Fmaster%2FAzureHDInsightDeployment.json)
+
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Flidvarko%2FAzureDeploymentTest%2Fmaster%2FAzureHDInsightDeployment.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)
+
