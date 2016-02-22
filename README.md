@@ -3,6 +3,8 @@ This is just for testing GITHub (do not use)
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Flidvarko%2FAzureDeploymentTest%2Fmaster%2FAzureHDInsightDeployment.json)
 
+[![Visualize](http://armviz.io/visualizebutton.png)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Flidvarko%2FAzureDeploymentTest%2Fmaster%2FAzureHDInsightDeployment.json)
+
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Flidvarko%2FAzureDeploymentTest%2Fmaster%2FAzureHDInsightDeployment.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
