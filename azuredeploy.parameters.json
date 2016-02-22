@@ -4,12 +4,6 @@
   "parameters": {
     "clusterName":{
       "value": "GEN-UNIQUE"
-    },
-    "location": {
-      "value": "West Europe"
-    },
-    "adminUsername": {
-      "value": "cluster_admin"
     }
   }
 }
