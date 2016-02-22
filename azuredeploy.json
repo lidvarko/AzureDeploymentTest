@@ -1,89 +1,165 @@
-    {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "clusterLocation": {
+        "location": {
             "type": "string",
-            "defaultValue": "West US",
-            "allowedValues": ["West US"]
+			"defaultValue": "West Europe",
+            "allowedValues": [
+                "Central US",
+                "East Asia",
+                "East US",
+                "Japan East",
+                "Japan West",
+                "North Europe",
+                "South Central US",
+                "Southeast Asia",
+                "West Europe",
+                "West US"
+            ],
+            "metadata": {
+                "description": "The location where all azure resources will be deployed."
+            }
+        },
+        "clusterVNetAddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "The virtual network's address range in CIDR notion. It must be contained in one of the standard private address spaces: 10.0.0.0/8, 172.160.0.0/12, or 192.168.0.0/16."
+            }
+        },
+        "clusterVNetSubnetName": {
+            "type": "string",
+            "defaultValue": "subnet-1",
+            "metadata": {
+                "description": "The name of the subnet to create in the virtual network."
+            }
+        },
+        "clusterVNetSubnetAddressRange": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "The subnet's address range in CIDR notation. It must be contained by the address space of the virtual network."
+            }
         },
         "clusterName": {
-            "type": "string"
-        },
-        "clusterUserName": {
             "type": "string",
-            "defaultValue": "admin"
+            "metadata": {
+                "description": "The name of the HDInsight cluster to create."
+            }
         },
-        "clusterUserPassword": {
-            "type": "securestring"
+        "clusterType": {
+            "type": "string",
+            "defaultValue": "hadoop",
+            "allowedValues": [
+                "hadoop",
+                "hbase",
+				"Spark"
+            ],
+            "metadata": {
+                "description": "The type of HDInsight cluster to create."
+            }
+        },
+        "clusterLoginUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "These credentials can be used to submit jobs to the cluster and to log into cluster dashboards."
+            }
+        },
+        "clusterLoginPassword": {
+            "type": "securestring",
+            "metadata": { 
+                "description": "The password must be at least 10 characters in length and must contain at least one digit, one non-alphanumeric character, and one upper or lower case letter."
+            }
         },
         "sshUserName": {
             "type": "string",
-            "defaultValue": "username"
+            "metadata": {
+                "description": "These credentials can be used to remotely access the cluster and the edge node virtual machine."
+            }
         },
         "sshPassword": {
-            "type": "securestring"
+            "type": "securestring",
+            "metadata": { 
+                "description": "The password must be at least 10 characters in length and must contain at least one digit, one non-alphanumeric character, and one upper or lower case letter."
+            }
         },
         "clusterStorageAccountName": {
-            "type": "string"
-        },
-        "clusterStorageAccountResourceGroup": {
-            "type": "string"
-        },
-        "clusterStorageType": {
             "type": "string",
-            "defaultValue": "Standard_LRS",
-            "allowedValues": [
-                "Standard_LRS",
-                "Standard_GRS",
-                "Standard_ZRS"
-            ]
-        },
-        "clusterStorageAccountContainer": {
-            "type": "string"
-        },
-        "clusterHeadNodeCount": {
-            "type": "int",
-            "defaultValue": 1
+            "metadata": {
+                "description": "The name of the storage account to be created and be used as the cluster's storage."
+            }
         },
         "clusterWorkerNodeCount": {
             "type": "int",
-            "defaultValue": 2
-        }
+            "defaultValue": 4,
+            "metadata": {
+                "description": "The number of nodes in the HDInsight cluster."
+            }
+		}
     },
     "variables": {
+        "defaultApiVersion": "2015-05-01-preview",
+        "clusterApiVersion": "2015-03-01-preview",
+        "clusterVNetName": "[concat(parameters('clusterName'),'vNet')]",
+        "hadoopZookeeperSize": "Small"
     },
     "resources": [
         {
-            "name": "[parameters('clusterStorageAccountName')]",
-            "type": "Microsoft.Storage/storageAccounts",
-            "location": "[parameters('clusterLocation')]",
-            "apiVersion": "2015-05-01-preview",
+            "name": "[variables('clusterVNetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[parameters('location')]",
+            "apiVersion": "[variables('defaultApiVersion')]",
             "dependsOn": [ ],
             "tags": { },
             "properties": {
-                "accountType": "[parameters('clusterStorageType')]"
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('clusterVNetAddressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('clusterVNetSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('clusterVNetSubnetAddressRange')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('clusterStorageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[parameters('location')]",
+            "apiVersion": "[variables('defaultApiVersion')]",
+            "dependsOn": [ ],
+            "tags": { },
+            "properties": {
+                "accountType": "Standard_LRS"
             }
         },
         {
             "name": "[parameters('clusterName')]",
             "type": "Microsoft.HDInsight/clusters",
-            "location": "[parameters('clusterLocation')]",
-            "apiVersion": "2015-03-01-preview",
+            "location": "[parameters('location')]",
+            "apiVersion": "[variables('clusterApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', parameters('clusterStorageAccountName'))]"
+                "[concat('Microsoft.Storage/storageAccounts/',parameters('clusterStorageAccountName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/',variables('clusterVNetName'))]"
             ],
             "tags": { },
             "properties": {
-                "clusterVersion": "3.2",
+                "clusterVersion": "99.152.1000.0",
                 "osType": "Linux",
                 "clusterDefinition": {
-                    "kind": "hadoop",
+                    "kind": "[parameters('clusterType')]",
+
                     "configurations": {
                         "gateway": {
                             "restAuthCredential.isEnabled": true,
-                            "restAuthCredential.username": "[parameters('clusterUserName')]",
-                            "restAuthCredential.password": "[parameters('clusterUserPassword')]"
+                            "restAuthCredential.username": "[parameters('clusterLoginUserName')]",
+                            "restAuthCredential.password": "[parameters('clusterLoginPassword')]"
                         }
                     }
                 },
@@ -92,8 +168,8 @@
                         {
                             "name": "[concat(parameters('clusterStorageAccountName'),'.blob.core.windows.net')]",
                             "isDefault": true,
-                            "container": "[parameters('clusterStorageAccountContainer')]",
-                            "key": "[listKeys(resourceId(parameters('clusterStorageAccountResourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('clusterStorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).key1]"
+                            "container": "[parameters('clusterName')]",
+                            "key": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('clusterStorageAccountName')), variables('defaultApiVersion')).key1]"
                         }
                     ]
                 },
@@ -101,9 +177,9 @@
                     "roles": [
                         {
                             "name": "headnode",
-                            "targetInstanceCount": "[parameters('clusterHeadNodeCount')]",
+                            "targetInstanceCount": "2",
                             "hardwareProfile": {
-                                "vmSize": "Large"
+                                "vmSize": "Standard_D4"
                             },
                             "osProfile": {
                                 "linuxOperatingSystemProfile": {
@@ -111,19 +187,16 @@
                                     "password": "[parameters('sshPassword')]"
                                 }
                             },
-                            "scriptActions": [
-                                {
-                                    "name": "installR",
-                                    "uri": "https://hdiconfigactions.blob.core.windows.net/linuxrconfigactionv01/r-installer-v01.sh",
-                                    "parameters": ""
-                                }
-                            ]
+                            "virtualNetworkProfile": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]",
+                                "subnet": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName')), '/subnets/', parameters('clusterVNetSubnetName'))]"
+                            }
                         },
                         {
                             "name": "workernode",
                             "targetInstanceCount": "[parameters('clusterWorkerNodeCount')]",
                             "hardwareProfile": {
-                                "vmSize": "Large"
+                                "vmSize": "Standard_D13"
                             },
                             "osProfile": {
                                 "linuxOperatingSystemProfile": {
@@ -131,23 +204,73 @@
                                     "password": "[parameters('sshPassword')]"
                                 }
                             },
-                            "scriptActions": [
-                                {
-                                    "name": "installR",
-                                    "uri": "https://hdiconfigactions.blob.core.windows.net/linuxrconfigactionv01/r-installer-v01.sh",
-                                    "parameters": ""
+                            "virtualNetworkProfile": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]",
+                                "subnet": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName')), '/subnets/', parameters('clusterVNetSubnetName'))]"
+                            }
+                        },
+                        {
+                            "name": "zookeepernode",
+                            "targetInstanceCount": "3",
+                            "hardwareProfile": {
+                                "vmSize": "[variables('hadoopZookeeperSize')]"
+                            },
+                            "osProfile": {
+                                "linuxOperatingSystemProfile": {
+                                    "username": "[parameters('sshUserName')]",
+                                    "password": "[parameters('sshPassword')]"
                                 }
-                            ]
+                            },
+                            "virtualNetworkProfile": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]",
+                                "subnet": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName')), '/subnets/', parameters('clusterVNetSubnetName'))]"
+                            }
                         }
                     ]
                 }
             }
+        },
+        {
+            "apiVersion": "[variables('defaultApiVersion')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('edgeNodeNicSSHSGName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "description": "Allows SSH traffic",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
         }
     ],
     "outputs": {
+        "vnet": {
+            "type": "object",
+            "value": "[reference(resourceId('Microsoft.Network/virtualNetworks',variables('clusterVNetName')))]"
+        },
         "cluster":{
             "type" : "object",
             "value" : "[reference(resourceId('Microsoft.HDInsight/clusters',parameters('clusterName')))]"
+        },
+        "edgeNodePublicIp": {
+            "type": "object",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('edgeNodePublicIpName')))]"
+        },
+        "edgeNode": {
+            "type": "object",
+            "value": "[reference(resourceId('Microsoft.Compute/virtualMachines',parameters('edgeNodeVirtualMachineName')))]"
         }
     }
 }
